@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Bookmark Sync",
+  "version": "1.0.0",
+  "description": "Real-time sync browser bookmarks to local JSON file",
+  "permissions": [
+    "bookmarks",
+    "nativeMessaging",
+    "storage"
+  ],
+  "background": {
+    "service_worker": "dist/background/index.js"
+  },
+  "icons": {
+    "16": "assets/icons/icon16.svg",
+    "48": "assets/icons/icon48.svg",
+    "128": "assets/icons/icon128.svg"
+  },
+  "action": {
+    "default_icon": {
+      "16": "assets/icons/icon16.svg",
+      "48": "assets/icons/icon48.svg"
+    },
+    "default_title": "Bookmark Sync"
+  }
+}

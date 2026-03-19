@@ -1,0 +1,9 @@
+{
+  "name": "browser-sync-native-host",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "cargo build --release",
+    "install-host": "powershell -ExecutionPolicy Bypass -File ./install.ps1"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "browser-sync-cli",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser bookmark sync tool with Chrome extension, Native Host, and Tauri app",
+  "scripts": {
+    "dev": "pnpm -r run dev",
+    "build": "pnpm -r run build",
+    "build:extension": "pnpm --filter extension run build",
+    "build:native-host": "pnpm --filter native-host run build",
+    "build:app": "pnpm --filter app run build"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=8"
+  }
+}

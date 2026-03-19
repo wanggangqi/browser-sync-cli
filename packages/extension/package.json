@@ -1,0 +1,14 @@
+{
+  "name": "bookmark-sync-extension",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --target=chrome110",
+    "dev": "esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.260",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0"
+  }
+}

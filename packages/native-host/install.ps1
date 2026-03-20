@@ -35,8 +35,7 @@ $ManifestJson = @{
     path = $NativeHostExe
     type = "stdio"
     allowed_origins = @(
-        "chrome-extension://*/",
-        "chrome-extension://*/"
+        "chrome-extension://ndhcncbkbfkdijbpldkeihamiomhofen/"
     )
 } | ConvertTo-Json -Depth 10
 

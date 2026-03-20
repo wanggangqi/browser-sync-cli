@@ -1,6 +1,9 @@
 import { initBookmarkSync, performFullSync } from '../bookmark-sync.js';
 
-// Initialize when extension starts
+// Initialize immediately when Service Worker loads
+initBookmarkSync().catch(console.error);
+
+// Also initialize on these events for redundancy
 chrome.runtime.onStartup.addListener(async () => {
   console.log('[Background] Extension starting up...');
   await initBookmarkSync();

@@ -12,9 +12,19 @@ interface ChromeBookmarkTreeNode {
 }
 
 interface BookmarkSyncData {
-  version: string;
-  lastSync: string;
   bookmarks: ChromeBookmarkTreeNode[];
+}
+
+// 检测当前浏览器类型
+function getBrowserType(): 'chrome' | 'edge' {
+  if (typeof navigator !== 'undefined') {
+    const userAgent = navigator.userAgent;
+    if (userAgent.includes('Edg/')) {
+      return 'edge';
+    }
+  }
+  // 默认返回 chrome
+  return 'chrome';
 }
 
 function convertBookmarkTree(nodes: ChromeBookmarkTreeNode[]): ChromeBookmarkTreeNode[] {
@@ -34,14 +44,13 @@ export async function performFullSync(): Promise<void> {
   try {
     const tree = await chrome.bookmarks.getTree();
     const syncData: BookmarkSyncData = {
-      version: '1.0',
-      lastSync: new Date().toISOString(),
       bookmarks: convertBookmarkTree(tree)
     };
 
     const success = sendMessage({
       type: 'full_sync',
-      data: syncData
+      data: syncData,
+      browser: getBrowserType()
     });
 
     if (success) {

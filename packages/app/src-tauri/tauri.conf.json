@@ -6,7 +6,7 @@
     "distDir": "../dist"
   },
   "package": {
-    "productName": "Browser Sync",
+    "productName": "十一",
     "version": "1.0.0"
   },
   "tauri": {
@@ -27,6 +27,11 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "http": {
+        "all": false,
+        "request": true,
+        "scope": ["https://**", "http://**"]
       }
     },
     "bundle": {
@@ -50,7 +55,7 @@
         "signingIdentity": null
       },
       "resources": [],
-      "shortDescription": "Browser Sync",
+      "shortDescription": "书签管理助手",
       "targets": "all",
       "windows": {
         "certificateThumbprint": null,
@@ -69,7 +74,7 @@
         "fullscreen": false,
         "height": 600,
         "resizable": true,
-        "title": "Browser Sync",
+        "title": "十一",
         "width": 800,
         "minWidth": 400,
         "minHeight": 300

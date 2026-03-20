@@ -4,7 +4,7 @@ use std::fs;
 use std::io::{self, Read, Write};
 use std::path::PathBuf;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 struct BookmarkNode {
     id: String,
@@ -26,9 +26,28 @@ struct BookmarkNode {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct BookmarkSyncData {
-    version: String,
-    last_sync: String,
     bookmarks: Vec<BookmarkNode>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum BrowserType {
+    Chrome,
+    Edge,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct BrowserBookmarks {
+    bookmarks: Vec<BookmarkNode>,
+    last_sync: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MultiBrowserData {
+    chrome: Option<BrowserBookmarks>,
+    edge: Option<BrowserBookmarks>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -36,6 +55,8 @@ struct IncomingMessage {
     #[serde(rename = "type")]
     msg_type: String,
     data: serde_json::Value,
+    #[serde(default)]
+    browser: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -61,6 +82,90 @@ fn get_data_file_path() -> PathBuf {
     }
 
     data_dir.join("bookmarks.json")
+}
+
+fn load_multi_browser_data() -> MultiBrowserData {
+    let file_path = get_data_file_path();
+
+    if !file_path.exists() {
+        return MultiBrowserData {
+            chrome: None,
+            edge: None,
+        };
+    }
+
+    match fs::read_to_string(&file_path) {
+        Ok(content) => {
+            // Try to parse as multi-browser format first
+            if let Ok(data) = serde_json::from_str::<MultiBrowserData>(&content) {
+                return data;
+            }
+            // Try to parse as legacy single-browser format
+            if let Ok(legacy_data) = serde_json::from_str::<BookmarkSyncData>(&content) {
+                return MultiBrowserData {
+                    chrome: Some(BrowserBookmarks {
+                        bookmarks: legacy_data.bookmarks,
+                        last_sync: None,
+                    }),
+                    edge: None,
+                };
+            }
+        }
+        Err(_) => {}
+    }
+
+    MultiBrowserData {
+        chrome: None,
+        edge: None,
+    }
+}
+
+fn save_multi_browser_data(data: &MultiBrowserData) -> Result<(), String> {
+    let file_path = get_data_file_path();
+
+    let json_content = serde_json::to_string_pretty(data)
+        .map_err(|e| format!("Failed to serialize bookmarks: {}", e))?;
+
+    fs::write(&file_path, json_content)
+        .map_err(|e| format!("Failed to write file: {}", e))?;
+
+    Ok(())
+}
+
+fn handle_full_sync(data: &BookmarkSyncData, browser: Option<String>) -> Response {
+    let mut multi_data = load_multi_browser_data();
+    let now = chrono::Utc::now().to_rfc3339();
+
+    let browser_bookmarks = BrowserBookmarks {
+        bookmarks: data.bookmarks.clone(),
+        last_sync: Some(now),
+    };
+
+    match browser.as_deref() {
+        Some("chrome") | None => {
+            multi_data.chrome = Some(browser_bookmarks);
+        }
+        Some("edge") => {
+            multi_data.edge = Some(browser_bookmarks);
+        }
+        _ => {
+            // Unknown browser, default to chrome
+            multi_data.chrome = Some(browser_bookmarks);
+        }
+    }
+
+    match save_multi_browser_data(&multi_data) {
+        Ok(_) => Response {
+            success: true,
+            message: Some(format!("Bookmarks saved for browser: {:?}", browser)),
+            error: None,
+        },
+        Err(e) => Response {
+            success: false,
+            message: None,
+            error: Some(format!("Failed to save bookmarks: {}", e)),
+        },
+    }
 }
 
 fn read_message() -> Option<IncomingMessage> {
@@ -108,41 +213,15 @@ fn send_response(response: &Response) {
     handle.flush().ok();
 }
 
-fn handle_full_sync(data: &BookmarkSyncData) -> Response {
-    let file_path = get_data_file_path();
-
-    // Format JSON with pretty printing
-    let json_content = match serde_json::to_string_pretty(data) {
-        Ok(j) => j,
-        Err(e) => return Response {
-            success: false,
-            message: None,
-            error: Some(format!("Failed to serialize bookmarks: {}", e)),
-        },
-    };
-
-    match fs::write(&file_path, json_content) {
-        Ok(_) => Response {
-            success: true,
-            message: Some(format!("Bookmarks saved to {:?}", file_path)),
-            error: None,
-        },
-        Err(e) => Response {
-            success: false,
-            message: None,
-            error: Some(format!("Failed to write file: {}", e)),
-        },
-    }
-}
-
 fn main() {
     // Process each incoming message
     while let Some(message) = read_message() {
+        let browser = message.browser.clone();
         let response = match message.msg_type.as_str() {
             "full_sync" => {
                 // Parse the data as BookmarkSyncData
                 match serde_json::from_value::<BookmarkSyncData>(message.data) {
-                    Ok(sync_data) => handle_full_sync(&sync_data),
+                    Ok(sync_data) => handle_full_sync(&sync_data, browser),
                     Err(e) => Response {
                         success: false,
                         message: None,

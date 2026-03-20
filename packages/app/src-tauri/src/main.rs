@@ -3,7 +3,6 @@
 
 mod commands;
 
-use notify::{RecommendedWatcher, Watcher};
 use std::env;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -21,28 +20,6 @@ fn get_data_file_path() -> PathBuf {
         .join("bookmarks.json")
 }
 
-fn watch_bookmarks_file(app_handle: tauri::AppHandle) {
-    let file_path = get_data_file_path();
-    let parent_dir = file_path.parent().unwrap_or(&PathBuf::from(".")).to_path_buf();
-
-    let _watcher: RecommendedWatcher = RecommendedWatcher::new(
-        move |res: Result<notify::Event, notify::Error>| {
-            if let Ok(event) = res {
-                if event.paths.iter().any(|p| p.file_name().map(|n| n == "bookmarks.json").unwrap_or(false)) {
-                    // Emit event to frontend
-                    let _ = app_handle.emit_all("bookmark-changed", ());
-                }
-            }
-        },
-        notify::Config::default().with_poll_interval(Duration::from_secs(1)),
-    )
-    .expect("Failed to create file watcher");
-
-    // Keep watcher alive by leaking it (for simplicity in this example)
-    // In production, you'd want to manage the watcher properly
-    std::mem::forget(_watcher);
-}
-
 fn main() {
     tauri::Builder::default()
         .setup(|app| {
@@ -51,9 +28,9 @@ fn main() {
             // Watch for bookmark file changes
             std::thread::spawn(move || {
                 let file_path = get_data_file_path();
-                let parent_dir = file_path.parent().unwrap_or(&PathBuf::from(".")).to_path_buf();
 
                 // Create directory if it doesn't exist
+                let parent_dir = file_path.parent().unwrap_or(&PathBuf::from(".")).to_path_buf();
                 if !parent_dir.exists() {
                     let _ = std::fs::create_dir_all(&parent_dir);
                 }
@@ -86,12 +63,21 @@ fn main() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
-            commands::get_bookmarks,
-            commands::search_bookmarks,
-            commands::open_url,
-            commands::export_bookmarks,
-            commands::export_bookmarks_to_path,
-            commands::import_bookmarks,
+            commands::bookmarks::get_bookmarks,
+            commands::bookmarks::search_bookmarks,
+            commands::bookmarks::open_url,
+            commands::bookmarks::export_bookmarks,
+            commands::bookmarks::export_bookmarks_to_path,
+            commands::bookmarks::import_bookmarks,
+            commands::spaces::get_spaces,
+            commands::spaces::save_spaces,
+            commands::spaces::create_space,
+            commands::spaces::update_space,
+            commands::spaces::delete_space,
+            commands::spaces::set_active_space,
+            commands::spaces::fetch_remote_bookmarks,
+            commands::spaces::save_space_cache,
+            commands::spaces::get_space_cache,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

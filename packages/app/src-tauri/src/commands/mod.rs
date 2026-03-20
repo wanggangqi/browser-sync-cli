@@ -1,3 +1,2 @@
 pub mod bookmarks;
-
-pub use bookmarks::*;
+pub mod spaces;

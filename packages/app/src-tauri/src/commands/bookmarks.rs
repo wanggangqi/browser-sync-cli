@@ -20,12 +20,32 @@ pub struct BookmarkNode {
     pub children: Option<Vec<BookmarkNode>>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BookmarkSyncData {
-    pub version: String,
-    pub last_sync: String,
     pub bookmarks: Vec<BookmarkNode>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct BrowserBookmarks {
+    pub bookmarks: Vec<BookmarkNode>,
+    pub last_sync: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MultiBrowserData {
+    pub chrome: Option<BrowserBookmarks>,
+    pub edge: Option<BrowserBookmarks>,
+}
+
+/// 浏览器类型
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BrowserType {
+    Chrome,
+    Edge,
+    All,
 }
 
 fn get_data_file_path() -> PathBuf {
@@ -38,30 +58,71 @@ fn get_data_file_path() -> PathBuf {
         .join("bookmarks.json")
 }
 
-#[tauri::command]
-pub fn get_bookmarks() -> Result<BookmarkSyncData, String> {
+/// 加载多浏览器数据，兼容旧格式
+fn load_bookmarks_data() -> MultiBrowserData {
     let file_path = get_data_file_path();
 
     if !file_path.exists() {
-        return Ok(BookmarkSyncData {
-            version: "1.0".to_string(),
-            last_sync: String::new(),
-            bookmarks: vec![],
-        });
+        return MultiBrowserData {
+            chrome: None,
+            edge: None,
+        };
     }
 
-    let content = fs::read_to_string(&file_path)
-        .map_err(|e| format!("Failed to read bookmarks file: {}", e))?;
+    let content = match fs::read_to_string(&file_path) {
+        Ok(c) => c,
+        Err(_) => return MultiBrowserData { chrome: None, edge: None },
+    };
 
-    let data: BookmarkSyncData = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse bookmarks: {}", e))?;
+    // 尝试解析为多浏览器格式
+    if let Ok(data) = serde_json::from_str::<MultiBrowserData>(&content) {
+        return data;
+    }
 
-    Ok(data)
+    // 尝试解析为旧格式（兼容）
+    if let Ok(legacy) = serde_json::from_str::<BookmarkSyncData>(&content) {
+        return MultiBrowserData {
+            chrome: Some(BrowserBookmarks {
+                bookmarks: legacy.bookmarks,
+                last_sync: None,
+            }),
+            edge: None,
+        };
+    }
+
+    MultiBrowserData {
+        chrome: None,
+        edge: None,
+    }
+}
+
+/// 获取指定浏览器的书签
+#[tauri::command]
+pub fn get_bookmarks(browser: Option<String>) -> Result<BookmarkSyncData, String> {
+    let data = load_bookmarks_data();
+
+    let result = match browser.as_deref() {
+        Some("chrome") => data.chrome,
+        Some("edge") => data.edge,
+        _ => data.chrome.or(data.edge), // 默认返回 chrome，如果没有则返回 edge
+    };
+
+    Ok(BookmarkSyncData {
+        bookmarks: result.map(|b| b.bookmarks).unwrap_or_default(),
+    })
 }
 
 #[tauri::command]
-pub fn search_bookmarks(query: String) -> Result<Vec<BookmarkNode>, String> {
-    let data = get_bookmarks()?;
+pub fn search_bookmarks(query: String, browser: Option<String>) -> Result<Vec<BookmarkNode>, String> {
+    let data = load_bookmarks_data();
+
+    let result = match browser.as_deref() {
+        Some("chrome") => data.chrome,
+        Some("edge") => data.edge,
+        _ => data.chrome.or(data.edge),
+    };
+
+    let bookmarks = result.map(|b| b.bookmarks).unwrap_or_default();
 
     fn search_in_tree(nodes: &[BookmarkNode], query: &str, results: &mut Vec<BookmarkNode>) {
         for node in nodes {
@@ -83,7 +144,7 @@ pub fn search_bookmarks(query: String) -> Result<Vec<BookmarkNode>, String> {
     }
 
     let mut results = Vec::new();
-    search_in_tree(&data.bookmarks, &query, &mut results);
+    search_in_tree(&bookmarks, &query, &mut results);
 
     Ok(results)
 }

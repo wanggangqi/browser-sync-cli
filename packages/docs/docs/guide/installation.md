@@ -10,7 +10,7 @@
 
 ## 下载
 
-从 [GitHub Releases](https://github.com/your-repo/browser-sync-cli/releases) 下载最新版本：
+从 [GitHub Releases](https://github.com/wanggangqi/browser-sync-cli/releases) 下载最新版本：
 
 | 文件 | 说明 |
 |------|------|

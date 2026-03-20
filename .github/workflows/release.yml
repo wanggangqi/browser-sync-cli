@@ -58,6 +58,7 @@ jobs:
 
       - name: Build Native Host (Windows)
         if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
           cd packages/native-host
           cargo build --release --target ${{ matrix.target }}
@@ -86,21 +87,18 @@ jobs:
           prerelease: false
           args: --target ${{ matrix.target }}
 
-      - name: Package Release Assets (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Package Release Assets
+        shell: bash
         run: |
           mkdir -p release/extension
           cp -r packages/extension/dist/* release/extension/
+          cp -r packages/native-host/release/native-host release/
           cd release
-          7z a -tzip browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
-
-      - name: Package Release Assets (macOS)
-        if: matrix.os == 'macos-latest'
-        run: |
-          mkdir -p release/extension
-          cp -r packages/extension/dist/* release/extension/
-          cd release
-          zip -r browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            7z a -tzip browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
+          else
+            zip -r browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
+          fi
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2

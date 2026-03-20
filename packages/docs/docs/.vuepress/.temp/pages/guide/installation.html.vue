@@ -7,7 +7,7 @@
 <li><strong>磁盘空间</strong>: 约 50MB</li>
 </ul>
 <h2 id="下载" tabindex="-1"><a class="header-anchor" href="#下载"><span>下载</span></a></h2>
-<p>从 <a href="https://github.com/your-repo/browser-sync-cli/releases" target="_blank" rel="noopener noreferrer">GitHub Releases<ExternalLinkIcon/></a> 下载最新版本：</p>
+<p>从 <a href="https://github.com/wanggangqi/browser-sync-cli/releases" target="_blank" rel="noopener noreferrer">GitHub Releases<ExternalLinkIcon/></a> 下载最新版本：</p>
 <table>
 <thead>
 <tr>

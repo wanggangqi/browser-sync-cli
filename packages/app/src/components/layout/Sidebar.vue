@@ -2,18 +2,19 @@
 import type { Space } from '@/types'
 
 defineProps<{
-  currentPage: 'navigation' | 'spaces'
+  currentPage: 'navigation' | 'spaces' | 'settings'
   spaces: Space[]
   activeSpaceId: string
 }>()
 
 defineEmits<{
-  (e: 'navigate', page: 'navigation' | 'spaces'): void
+  (e: 'navigate', page: 'navigation' | 'spaces' | 'settings'): void
 }>()
 
 const menuItems = [
   { id: 'navigation' as const, icon: '📑', label: '导航' },
-  { id: 'spaces' as const, icon: '🗂️', label: '空间管理' }
+  { id: 'spaces' as const, icon: '🗂️', label: '空间管理' },
+  { id: 'settings' as const, icon: '⚙️', label: '设置' }
 ]
 </script>
 

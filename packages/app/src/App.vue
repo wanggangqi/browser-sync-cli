@@ -4,8 +4,9 @@ import { useSpaceStore } from '@/stores/spaceStore'
 import Sidebar from '@/components/layout/Sidebar.vue'
 import NavigationPage from '@/components/navigation/NavigationPage.vue'
 import SpaceManagePage from '@/components/spaces/SpaceManagePage.vue'
+import SettingsPage from '@/components/settings/SettingsPage.vue'
 
-const currentPage = ref<'navigation' | 'spaces'>('navigation')
+const currentPage = ref<'navigation' | 'spaces' | 'settings'>('navigation')
 
 const { spaces, activeSpaceId, loadSpaces } = useSpaceStore()
 
@@ -13,7 +14,7 @@ onMounted(() => {
   loadSpaces()
 })
 
-function handleNavigate(page: 'navigation' | 'spaces') {
+function handleNavigate(page: 'navigation' | 'spaces' | 'settings') {
   currentPage.value = page
 }
 </script>
@@ -29,6 +30,7 @@ function handleNavigate(page: 'navigation' | 'spaces') {
     <main class="main-content">
       <NavigationPage v-if="currentPage === 'navigation'" />
       <SpaceManagePage v-else-if="currentPage === 'spaces'" />
+      <SettingsPage v-else-if="currentPage === 'settings'" />
     </main>
   </div>
 </template>

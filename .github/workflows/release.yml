@@ -64,24 +64,33 @@ jobs:
           echo "manifest.json:"
           cat packages/extension/dist/manifest.json
 
-      - name: Build Native Host (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Build Native Host
         shell: bash
         run: |
           cd packages/native-host
           cargo build --release --target ${{ matrix.target }}
-          mkdir -p release
-          cp target/${{ matrix.target }}/release/browser-sync-native-host.exe release/
-          cp install.ps1 release/
 
-      - name: Build Native Host (macOS)
-        if: matrix.os == 'macos-latest'
+      - name: Prepare Native Host for Tauri (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
-          cd packages/native-host
-          cargo build --release --target ${{ matrix.target }}
-          mkdir -p release
-          cp target/${{ matrix.target }}/release/browser-sync-native-host release/
-          cp install.sh release/ || true
+          mkdir -p packages/app/src-tauri/binaries
+          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host.exe \
+             packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
+
+      - name: Prepare Native Host for Tauri (macOS Intel)
+        if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin'
+        run: |
+          mkdir -p packages/app/src-tauri/binaries
+          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host \
+             packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-apple-darwin
+
+      - name: Prepare Native Host for Tauri (macOS ARM)
+        if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
+        run: |
+          mkdir -p packages/app/src-tauri/binaries
+          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host \
+             packages/app/src-tauri/binaries/browser-sync-native-host-aarch64-apple-darwin
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0

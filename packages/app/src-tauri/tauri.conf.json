@@ -41,7 +41,7 @@
       "deb": {
         "depends": []
       },
-      "externalBin": [],
+      "externalBin": ["binaries/browser-sync-native-host"],
       "icon": [
         "icons/icon.ico"
       ],

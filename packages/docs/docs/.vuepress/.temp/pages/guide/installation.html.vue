@@ -94,14 +94,14 @@
 <h3 id="使用桌面应用配置-推荐" tabindex="-1"><a class="header-anchor" href="#使用桌面应用配置-推荐"><span>使用桌面应用配置（推荐）</span></a></h3>
 <ol>
 <li>启动 Browser Sync CLI 桌面应用</li>
-<li>点击右上角 ⚙️ 进入设置</li>
-<li>在&quot;扩展 ID&quot;区域填写：
+<li>点击左侧边栏的 <strong>⚙️ 设置</strong> 菜单</li>
+<li>在设置页面填写扩展 ID：
 <ul>
 <li>Chrome 扩展 ID</li>
 <li>Edge 扩展 ID（如使用 Edge）</li>
 </ul>
 </li>
-<li>点击&quot;保存&quot;</li>
+<li>点击 <strong>保存配置</strong></li>
 <li><strong>重启浏览器</strong></li>
 </ol>
 <h3 id="手动配置" tabindex="-1"><a class="header-anchor" href="#手动配置"><span>手动配置</span></a></h3>

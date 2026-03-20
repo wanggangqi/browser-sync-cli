@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm -r run dev",
     "build": "pnpm -r run build",
-    "build:extension": "pnpm --filter extension run build",
+    "build:extension": "pnpm --filter bookmark-sync-extension run build",
     "build:native-host": "pnpm --filter native-host run build",
     "build:app": "pnpm --filter app run build",
     "docs:dev": "pnpm --filter browser-sync-cli-docs run dev",

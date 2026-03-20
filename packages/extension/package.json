@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "mkdir -p dist && esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --target=chrome110 && cp manifest.json dist/ && cp -r assets dist/",
+    "build": "node -e \"require('fs').cpSync('manifest.json','dist/manifest.json',{force:true})\" && node -e \"require('fs').cpSync('assets','dist/assets',{recursive:true})\" && esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --target=chrome110",
     "dev": "esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --watch"
   },
   "devDependencies": {

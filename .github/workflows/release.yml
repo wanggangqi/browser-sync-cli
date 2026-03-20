@@ -16,20 +16,7 @@ permissions:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            artifact: windows
-          - os: macos-latest
-            target: x86_64-apple-darwin
-            artifact: macos-intel
-          - os: macos-latest
-            target: aarch64-apple-darwin
-            artifact: macos-arm
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -47,8 +34,6 @@ jobs:
 
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
 
       - name: Install dependencies
         run: pnpm install
@@ -68,29 +53,14 @@ jobs:
         shell: bash
         run: |
           cd packages/native-host
-          cargo build --release --target ${{ matrix.target }}
+          cargo build --release
 
-      - name: Prepare Native Host for Tauri (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Prepare Native Host for Tauri
         shell: bash
         run: |
           mkdir -p packages/app/src-tauri/binaries
-          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host.exe \
+          cp packages/native-host/target/release/browser-sync-native-host.exe \
              packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
-
-      - name: Prepare Native Host for Tauri (macOS Intel)
-        if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin'
-        run: |
-          mkdir -p packages/app/src-tauri/binaries
-          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host \
-             packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-apple-darwin
-
-      - name: Prepare Native Host for Tauri (macOS ARM)
-        if: matrix.os == 'macos-latest' && matrix.target == 'aarch64-apple-darwin'
-        run: |
-          mkdir -p packages/app/src-tauri/binaries
-          cp packages/native-host/target/${{ matrix.target }}/release/browser-sync-native-host \
-             packages/app/src-tauri/binaries/browser-sync-native-host-aarch64-apple-darwin
 
       - name: Build Tauri App
         uses: tauri-apps/tauri-action@v0
@@ -102,23 +72,14 @@ jobs:
           releaseBody: 'See assets below.'
           releaseDraft: true
           prerelease: false
-          args: --target ${{ matrix.target }}
 
-      - name: Package Extension (Windows)
-        if: matrix.os == 'windows-latest'
+      - name: Package Extension
         shell: bash
         run: |
           cd packages/extension
           7z a -tzip ../../extension.zip dist
 
-      - name: Package Extension (macOS)
-        if: matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin'
-        run: |
-          cd packages/extension
-          zip -r ../../extension.zip dist
-
       - name: Upload Extension
-        if: matrix.os == 'windows-latest' || (matrix.os == 'macos-latest' && matrix.target == 'x86_64-apple-darwin')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.version || github.ref_name }}

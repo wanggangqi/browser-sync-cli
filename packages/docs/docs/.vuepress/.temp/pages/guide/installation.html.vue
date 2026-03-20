@@ -21,15 +21,14 @@
 <td>Windows 安装程序（推荐）</td>
 </tr>
 <tr>
-<td><code v-pre>Browser-Sync-CLI_x64.zip</code></td>
-<td>便携版（免安装）</td>
-</tr>
-<tr>
 <td><code v-pre>extension.zip</code></td>
-<td>浏览器扩展</td>
+<td>浏览器扩展（Chrome/Edge）</td>
 </tr>
 </tbody>
 </table>
+<blockquote>
+<p>注意：解压 <code v-pre>extension.zip</code> 后，扩展目录为 <code v-pre>dist</code> 文件夹。</p>
+</blockquote>
 <h2 id="安装桌面应用" tabindex="-1"><a class="header-anchor" href="#安装桌面应用"><span>安装桌面应用</span></a></h2>
 <h3 id="方式一-安装程序-推荐" tabindex="-1"><a class="header-anchor" href="#方式一-安装程序-推荐"><span>方式一：安装程序（推荐）</span></a></h3>
 <ol>
@@ -44,22 +43,13 @@
 <li>创建桌面快捷方式</li>
 <li>创建开始菜单项</li>
 </ul>
-<h3 id="方式二-便携版" tabindex="-1"><a class="header-anchor" href="#方式二-便携版"><span>方式二：便携版</span></a></h3>
-<ol>
-<li>下载 <code v-pre>Browser-Sync-CLI_x64.zip</code></li>
-<li>解压到任意目录（如 <code v-pre>D:\Tools\Browser-Sync-CLI</code>）</li>
-<li>右键以管理员身份运行 <code v-pre>install.ps1</code>：<div class="language-powershell line-numbers-mode" data-highlighter="prismjs" data-ext="powershell"><pre v-pre><code class="language-powershell"><span class="line">powershell <span class="token operator">-</span>ExecutionPolicy Bypass <span class="token operator">-</span>File <span class="token punctuation">.</span>\install<span class="token punctuation">.</span>ps1</span>
-<span class="line"></span></code></pre>
-<div class="line-numbers" aria-hidden="true" style="counter-reset:line-number 0"><div class="line-number"></div></div></div></li>
-<li>运行 <code v-pre>Browser-Sync-CLI.exe</code> 启动应用</li>
-</ol>
 <h2 id="安装浏览器扩展" tabindex="-1"><a class="header-anchor" href="#安装浏览器扩展"><span>安装浏览器扩展</span></a></h2>
 <h3 id="chrome-浏览器" tabindex="-1"><a class="header-anchor" href="#chrome-浏览器"><span>Chrome 浏览器</span></a></h3>
 <ol>
 <li>
 <p>解压 <code v-pre>extension.zip</code> 到一个固定目录</p>
 <blockquote>
-<p>注意：不要删除或移动此目录，否则扩展会失效</p>
+<p>注意：解压后会有一个 <code v-pre>dist</code> 文件夹，这是扩展的实际目录</p>
 </blockquote>
 </li>
 <li>
@@ -72,7 +62,7 @@
 <p>点击 <strong>加载已解压的扩展程序</strong></p>
 </li>
 <li>
-<p>选择解压的扩展目录</p>
+<p>选择解压后的 <code v-pre>dist</code> 目录</p>
 </li>
 <li>
 <p>安装成功后，记录显示的扩展 ID（类似 <code v-pre>abcdefghijklmnopqrstuvwxyz123456</code>）</p>
@@ -93,7 +83,7 @@
 <p>点击 <strong>加载解压缩的扩展</strong></p>
 </li>
 <li>
-<p>选择解压的扩展目录</p>
+<p>选择解压后的 <code v-pre>dist</code> 目录</p>
 </li>
 <li>
 <p>安装成功后，记录显示的扩展 ID</p>

@@ -15,8 +15,9 @@
 | 文件 | 说明 |
 |------|------|
 | `Browser-Sync-CLI_x64-setup.exe` | Windows 安装程序（推荐） |
-| `Browser-Sync-CLI_x64.zip` | 便携版（免安装） |
-| `extension.zip` | 浏览器扩展 |
+| `extension.zip` | 浏览器扩展（Chrome/Edge） |
+
+> 注意：解压 `extension.zip` 后，扩展目录为 `dist` 文件夹。
 
 ## 安装桌面应用
 
@@ -32,22 +33,12 @@
 - 创建桌面快捷方式
 - 创建开始菜单项
 
-### 方式二：便携版
-
-1. 下载 `Browser-Sync-CLI_x64.zip`
-2. 解压到任意目录（如 `D:\Tools\Browser-Sync-CLI`）
-3. 右键以管理员身份运行 `install.ps1`：
-   ```powershell
-   powershell -ExecutionPolicy Bypass -File .\install.ps1
-   ```
-4. 运行 `Browser-Sync-CLI.exe` 启动应用
-
 ## 安装浏览器扩展
 
 ### Chrome 浏览器
 
 1. 解压 `extension.zip` 到一个固定目录
-   > 注意：不要删除或移动此目录，否则扩展会失效
+   > 注意：解压后会有一个 `dist` 文件夹，这是扩展的实际目录
 
 2. 打开 Chrome，访问 `chrome://extensions/`
 
@@ -55,7 +46,7 @@
 
 4. 点击 **加载已解压的扩展程序**
 
-5. 选择解压的扩展目录
+5. 选择解压后的 `dist` 目录
 
 6. 安装成功后，记录显示的扩展 ID（类似 `abcdefghijklmnopqrstuvwxyz123456`）
 
@@ -69,7 +60,7 @@
 
 4. 点击 **加载解压缩的扩展**
 
-5. 选择解压的扩展目录
+5. 选择解压后的 `dist` 目录
 
 6. 安装成功后，记录显示的扩展 ID
 

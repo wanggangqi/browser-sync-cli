@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --target=chrome110 && cp manifest.json dist/ && cp -r assets dist/",
+    "build": "mkdir -p dist && esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --target=chrome110 && cp manifest.json dist/ && cp -r assets dist/",
     "dev": "esbuild src/background/index.ts --bundle --outfile=dist/background/index.js --format=iife --platform=browser --watch"
   },
   "devDependencies": {

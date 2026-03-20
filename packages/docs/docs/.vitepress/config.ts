@@ -4,6 +4,7 @@ export default defineConfig({
   lang: 'zh-CN',
   title: 'Browser Sync CLI',
   description: '浏览器收藏夹实时同步工具',
+  base: '/browser-sync-cli/',
 
   themeConfig: {
     logo: '/logo.svg',

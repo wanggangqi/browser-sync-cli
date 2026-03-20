@@ -1,0 +1,125 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact: windows
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: macos-intel
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            artifact: macos-arm
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Extension
+        run: pnpm build:extension
+
+      - name: Build Native Host (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          cd packages/native-host
+          cargo build --release --target ${{ matrix.target }}
+          mkdir -p release/native-host
+          cp target/${{ matrix.target }}/release/browser-sync-native-host.exe release/native-host/
+          cp install.ps1 release/native-host/
+
+      - name: Build Native Host (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          cd packages/native-host
+          cargo build --release --target ${{ matrix.target }}
+          mkdir -p release/native-host
+          cp target/${{ matrix.target }}/release/browser-sync-native-host release/native-host/
+          cp install.sh release/native-host/ || true
+
+      - name: Build Tauri App
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.event.inputs.version || github.ref_name }}
+          releaseName: 'Browser Sync CLI ${{ github.event.inputs.version || github.ref_name }}'
+          releaseBody: 'See assets below.'
+          releaseDraft: true
+          prerelease: false
+          args: --target ${{ matrix.target }}
+
+      - name: Package Release Assets (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -p release/extension
+          cp -r packages/extension/dist/* release/extension/
+          cd release
+          7z a -tzip browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
+
+      - name: Package Release Assets (macOS)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p release/extension
+          cp -r packages/extension/dist/* release/extension/
+          cd release
+          zip -r browser-sync-cli-${{ matrix.artifact }}.zip extension native-host
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          files: release/browser-sync-cli-${{ matrix.artifact }}.zip
+          draft: true
+
+  create-release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create tag if not exists
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a ${{ inputs.version }} -m "Release ${{ inputs.version }}" || echo "Tag already exists"
+          git push origin ${{ inputs.version }} || echo "Tag already pushed"

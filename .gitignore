@@ -5,12 +5,14 @@ node_modules/
 # Build outputs
 dist/
 target/
-*.js
 *.js.map
 *.d.ts
 
-# Keep source files
+# Keep source files and scripts
 !src/**/*.*
+!scripts/**/*.*
+
+# Logs
 
 # IDE
 .vscode/

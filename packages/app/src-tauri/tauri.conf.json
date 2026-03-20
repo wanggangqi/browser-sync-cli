@@ -56,7 +56,7 @@
       },
       "resources": [],
       "shortDescription": "书签管理助手",
-      "targets": ["nsis", "msi"],
+      "targets": "all",
       "windows": {
         "certificateThumbprint": null,
         "digestAlgorithm": "sha256",

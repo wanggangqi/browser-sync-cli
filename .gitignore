@@ -42,3 +42,10 @@ packages/extension/dist/
 
 # Native Host build
 packages/native-host/target/
+
+# Docs build cache
+packages/docs/docs/.vitepress/cache/
+packages/docs/docs/.vuepress/.temp/
+
+# Claude skills
+.claude/skills/*/scripts/

@@ -75,6 +75,93 @@ winget install Rustlang.Rustup
 winget install Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools"
 ```
 
+### 安装 WiX 工具（Windows 安装包构建）
+
+WiX 是 Tauri 在 Windows 上生成 MSI 安装包所必需的工具。
+
+**方法一：通过 winget 安装（推荐）**
+
+需要以管理员身份运行 PowerShell：
+
+```powershell
+winget install WiXToolset.WiXToolset
+```
+
+**方法二：手动下载安装**
+
+1. 访问 [WiX releases 页面](https://github.com/wixtoolset/wix3/releases/tag/wix3141rtm)
+2. 下载 `wix314.exe` 并运行安装
+
+**添加环境变量**
+
+winget 安装 WiX 后可能不会自动添加到 PATH，需要手动配置：
+
+**方法一：命令行添加（推荐）**
+
+在 PowerShell 中执行：
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\Program Files (x86)\WiX Toolset v3.14\bin", "User")
+```
+
+**方法二：图形界面添加**
+
+1. 按 `Win + R`，输入 `sysdm.cpl`，回车
+2. 点击"高级" → "环境变量"
+3. 在"用户变量"中找到 `Path`，点击"编辑"
+4. 点击"新建"，添加路径：`C:\Program Files (x86)\WiX Toolset v3.14\bin`
+5. 点击"确定"保存
+
+::: warning 注意
+添加环境变量后，需要**重新打开终端**才能生效。
+:::
+
+**验证安装**
+
+```bash
+# 检查 WiX 是否正确安装
+light -?
+
+# 或检查 candle（WiX 编译器）
+candle -?
+```
+
+### 安装 NSIS 工具（NSIS 安装包构建）
+
+NSIS 用于生成 Windows 安装程序（.exe 安装包）。构建时 Tauri 会自动从 GitHub 下载，如果网络不通可手动配置。
+
+**下载地址**
+
+1. NSIS 主体：https://github.com/tauri-apps/binary-releases/releases/download/nsis-3/nsis-3.zip
+2. Tauri NSIS 工具库：https://github.com/tauri-apps/nsis-tauri-utils/releases/download/nsis_tauri_utils-v0.4.1/nsis_tauri_utils.dll
+
+**手动安装步骤**
+
+1. 下载上述两个文件
+2. 解压 `nsis-3.zip`
+3. 将解压后的内容和 `nsis_tauri_utils.dll` 放到缓存目录：
+
+```
+C:\Users\<用户名>\.cache\tauri\NSIS\
+```
+
+最终目录结构应如下：
+
+```
+NSIS/
+├── makensis.exe
+├── Plugins/
+│   └── x86-unicode/
+│       └── nsis_tauri_utils.dll
+├── Include/
+├── Stubs/
+└── ...其他文件
+```
+
+::: tip 提示
+`nsis_tauri_utils.dll` 需要同时放在 `NSIS/` 目录和 `NSIS/Plugins/x86-unicode/` 目录下。
+:::
+
 ### 安装项目依赖
 
 ```bash

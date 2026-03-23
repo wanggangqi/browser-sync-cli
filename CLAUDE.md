@@ -32,6 +32,24 @@ cd packages/native-host && cargo build --release
 
 # 安装 native host（Windows）
 cd packages/native-host && powershell -ExecutionPolicy Bypass -File .\install.ps1
+
+# 重新构建 Tauri 应用（完整流程）
+# 1. 清理旧构建
+rm -rf packages/app/dist && rm -rf packages/app/src-tauri/target
+
+# 2. 构建 native host（Tauri 需要它）
+cd packages/native-host && cargo build --release
+
+# 3. 复制 native host 到 binaries 目录
+mkdir -p packages/app/src-tauri/binaries
+cp packages/native-host/target/release/browser-sync-native-host.exe packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
+
+# 4. 构建 Tauri 应用
+cd packages/app && pnpm tauri build
+
+# 构建产物位置：
+# - NSIS: packages/app/src-tauri/target/release/bundle/nsis/shiyi_1.0.0_x64-setup.exe
+# - MSI: packages/app/src-tauri/target/release/bundle/msi/shiyi_1.0.0_x64_zh-CN.msi
 ```
 
 ## 架构

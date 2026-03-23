@@ -44,6 +44,40 @@ const highlightedUrl = computed(() => {
   return highlightText(props.node.url, props.searchQuery || '')
 })
 
+// 搜索时过滤子节点
+const filteredChildren = computed(() => {
+  if (!props.searchQuery || !props.node.children) {
+    return props.node.children || []
+  }
+  const query = props.searchQuery.toLowerCase()
+  return filterTree(props.node.children, query)
+})
+
+// 递归过滤树节点，只保留匹配的节点及其父节点
+function filterTree(nodes: BookmarkNode[], query: string): BookmarkNode[] {
+  const result: BookmarkNode[] = []
+
+  for (const node of nodes) {
+    const selfMatch = node.title.toLowerCase().includes(query) ||
+                      (node.url && node.url.toLowerCase().includes(query))
+
+    let filteredChildren: BookmarkNode[] = []
+    if (node.children?.length) {
+      filteredChildren = filterTree(node.children, query)
+    }
+
+    // 如果自己匹配，或者子节点中有匹配的，就保留这个节点
+    if (selfMatch || filteredChildren.length > 0) {
+      result.push({
+        ...node,
+        children: filteredChildren.length > 0 ? filteredChildren : node.children
+      })
+    }
+  }
+
+  return result
+}
+
 function toggle() {
   emit('toggle', props.node.id)
 }
@@ -83,15 +117,17 @@ function handleIconError(event: Event) {
       </span>
       <span v-else class="expand-icon-placeholder"></span>
 
-      <!-- 图标 -->
-      <img
-        v-if="node.url"
-        :src="`https://www.google.com/s2/favicons?domain=${node.url}&sz=16`"
-        class="node-icon"
-        alt=""
-        @error="handleIconError"
-      />
-      <span v-else class="folder-icon">📁</span>
+      <!-- 图标包装器 - 保持固定宽度对齐 -->
+      <div class="icon-wrapper">
+        <img
+          v-if="node.url"
+          :src="`https://www.google.com/s2/favicons?domain=${node.url}&sz=16`"
+          class="node-icon"
+          alt=""
+          @error="handleIconError"
+        />
+        <span v-else class="folder-icon">📁</span>
+      </div>
 
       <!-- 标题 -->
       <span class="node-title" v-html="highlightedTitle"></span>
@@ -101,9 +137,9 @@ function handleIconError(event: Event) {
     </div>
 
     <!-- 子节点 -->
-    <div v-if="isFolder && isExpanded" class="children">
+    <div v-if="isFolder && isExpanded && filteredChildren.length > 0" class="children">
       <BookmarkTreeNode
-        v-for="child in node.children"
+        v-for="child in filteredChildren"
         :key="child.id"
         :node="child"
         :search-query="searchQuery"
@@ -126,7 +162,7 @@ function handleIconError(event: Event) {
   padding: 6px 8px;
   cursor: pointer;
   border-radius: 4px;
-  gap: 8px;
+  gap: 4px;
 }
 
 .node-content:hover {
@@ -143,6 +179,9 @@ function handleIconError(event: Event) {
   color: #666;
   cursor: pointer;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .expand-icon-placeholder {
@@ -150,15 +189,23 @@ function handleIconError(event: Event) {
   flex-shrink: 0;
 }
 
-.node-icon {
+.icon-wrapper {
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.node-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
 }
 
 .folder-icon {
   font-size: 14px;
-  flex-shrink: 0;
 }
 
 .node-title {

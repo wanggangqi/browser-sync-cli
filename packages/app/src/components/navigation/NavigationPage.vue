@@ -190,13 +190,14 @@ function collapseAll() {
       <div class="spinner"></div>
     </div>
 
-    <BookmarkTree
-      v-else
-      ref="treeRef"
-      :bookmarks="bookmarks"
-      :search-query="searchQuery"
-      @open-url="openUrl"
-    />
+    <div v-else class="bookmark-tree-wrapper">
+      <BookmarkTree
+        ref="treeRef"
+        :bookmarks="bookmarks"
+        :search-query="searchQuery"
+        @open-url="openUrl"
+      />
+    </div>
   </div>
 </template>
 
@@ -300,7 +301,13 @@ function collapseAll() {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
+  flex: 1;
+}
+
+.bookmark-tree-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .spinner {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import BookmarkTreeNode from './BookmarkTreeNode.vue'
 import type { BookmarkNode } from '@/types'
 
@@ -15,14 +15,39 @@ const emit = defineEmits<{
 // 展开的节点 ID 集合
 const expandedIds = ref<Set<string>>(new Set())
 
-// 搜索时自动展开包含匹配项的父节点
-watch(() => props.searchQuery, (query) => {
-  if (query) {
-    const matchingParentIds = new Set<string>()
-    findMatchingParents(props.bookmarks, query.toLowerCase(), matchingParentIds, new Set<string>())
-    expandedIds.value = matchingParentIds
+// 过滤后的树形数据（搜索时使用）
+const filteredBookmarks = computed(() => {
+  if (!props.searchQuery) {
+    return props.bookmarks
   }
-}, { immediate: true })
+  const query = props.searchQuery.toLowerCase()
+  return filterTree(props.bookmarks, query)
+})
+
+// 递归过滤树节点，只保留匹配的节点及其父节点
+function filterTree(nodes: BookmarkNode[], query: string): BookmarkNode[] {
+  const result: BookmarkNode[] = []
+
+  for (const node of nodes) {
+    const selfMatch = node.title.toLowerCase().includes(query) ||
+                      (node.url && node.url.toLowerCase().includes(query))
+
+    let filteredChildren: BookmarkNode[] = []
+    if (node.children?.length) {
+      filteredChildren = filterTree(node.children, query)
+    }
+
+    // 如果自己匹配，或者子节点中有匹配的，就保留这个节点
+    if (selfMatch || filteredChildren.length > 0) {
+      result.push({
+        ...node,
+        children: filteredChildren.length > 0 ? filteredChildren : node.children
+      })
+    }
+  }
+
+  return result
+}
 
 // 查找所有包含匹配项的父节点
 function findMatchingParents(
@@ -62,6 +87,18 @@ function findMatchingParents(
   }
   return hasMatch
 }
+
+// 搜索时自动展开包含匹配项的父节点
+watch(() => props.searchQuery, (query) => {
+  if (query && query.trim()) {
+    const matchingParentIds = new Set<string>()
+    findMatchingParents(props.bookmarks, query.toLowerCase(), matchingParentIds, new Set<string>())
+    expandedIds.value = matchingParentIds
+  } else {
+    // 清空搜索时重置展开状态
+    expandedIds.value = new Set()
+  }
+}, { immediate: true })
 
 function toggleNode(id: string) {
   const newSet = new Set(expandedIds.value)
@@ -106,12 +143,12 @@ defineExpose({
 
 <template>
   <div class="bookmark-tree">
-    <div v-if="bookmarks.length === 0" class="empty-state">
+    <div v-if="filteredBookmarks.length === 0" class="empty-state">
       <p v-if="searchQuery">没有找到匹配的书签</p>
       <p v-else>暂无书签</p>
     </div>
     <BookmarkTreeNode
-      v-for="node in bookmarks"
+      v-for="node in filteredBookmarks"
       :key="node.id"
       :node="node"
       :search-query="searchQuery"

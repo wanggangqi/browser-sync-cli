@@ -183,6 +183,8 @@ fn main() {
             commands::spaces::fetch_remote_bookmarks,
             commands::spaces::save_space_cache,
             commands::spaces::get_space_cache,
+            commands::spaces::get_data_dir_path,
+            commands::spaces::open_data_dir,
             commands::native::get_extension_config,
             commands::native::save_extension_config,
         ])

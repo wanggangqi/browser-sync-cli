@@ -285,6 +285,48 @@ pub fn save_space_cache(space_id: String, data: BookmarkSyncData) -> Result<(), 
 
 /// 获取空间缓存的书签数据
 #[tauri::command]
+pub fn get_data_dir_path() -> String {
+    get_data_dir().to_string_lossy().to_string()
+}
+
+#[tauri::command]
+pub fn open_data_dir() -> Result<(), String> {
+    let path = get_data_dir();
+
+    // 确保目录存在
+    if !path.exists() {
+        fs::create_dir_all(&path)
+            .map_err(|e| format!("Failed to create data directory: {}", e))?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Failed to open directory: {}", e))?;
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Failed to open directory: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        std::process::Command::new("xdg-open")
+            .arg(&path)
+            .spawn()
+            .map_err(|e| format!("Failed to open directory: {}", e))?;
+    }
+
+    Ok(())
+}
+
+#[tauri::command]
 pub fn get_space_cache(space_id: String) -> Result<Option<BookmarkSyncData>, String> {
     let file_path = get_space_cache_file_path(&space_id);
 

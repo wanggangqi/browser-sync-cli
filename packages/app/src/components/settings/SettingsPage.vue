@@ -9,6 +9,7 @@ interface ExtensionConfig {
 
 const chromeExtensionId = ref('')
 const edgeExtensionId = ref('')
+const dataDirPath = ref('')
 const saving = ref(false)
 const message = ref('')
 const messageType = ref<'success' | 'error'>('success')
@@ -18,6 +19,9 @@ onMounted(async () => {
     const config = await invoke<ExtensionConfig>('get_extension_config')
     chromeExtensionId.value = config.chrome_extension_id || ''
     edgeExtensionId.value = config.edge_extension_id || ''
+
+    // 获取数据目录路径
+    dataDirPath.value = await invoke<string>('get_data_dir_path')
   } catch (e) {
     console.error('Failed to load config:', e)
   }
@@ -44,8 +48,13 @@ async function handleSave() {
   }
 }
 
-function handleCopyPath() {
-  navigator.clipboard.writeText('%LOCALAPPDATA%\\browser-sync-cli')
+async function handleOpenDataDir() {
+  try {
+    await invoke('open_data_dir')
+  } catch (e) {
+    messageType.value = 'error'
+    message.value = `打开目录失败: ${e}`
+  }
 }
 </script>
 
@@ -94,8 +103,8 @@ function handleCopyPath() {
     <div class="settings-section">
       <h2 class="section-title">数据存储位置</h2>
       <div class="path-info">
-        <code>%LOCALAPPDATA%\browser-sync-cli</code>
-        <button class="btn btn-sm" @click="handleCopyPath">复制路径</button>
+        <code>{{ dataDirPath }}</code>
+        <button class="btn btn-sm btn-primary" @click="handleOpenDataDir">打开目录</button>
       </div>
     </div>
   </div>
@@ -200,6 +209,15 @@ function handleCopyPath() {
 
 .btn-sm:hover {
   background: #d0d0d0;
+}
+
+.btn-sm.btn-primary {
+  background: #4a90d9;
+  color: #fff;
+}
+
+.btn-sm.btn-primary:hover {
+  background: #3a7bc8;
 }
 
 .message {

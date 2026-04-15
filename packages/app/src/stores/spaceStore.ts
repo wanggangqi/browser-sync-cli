@@ -30,16 +30,14 @@ export function useSpaceStore() {
     name: string,
     type: 'local' | 'remote',
     apiUrl?: string,
-    apiKey?: string,
-    browser?: 'chrome' | 'edge'
+    apiKey?: string
   ) {
     try {
       const space = await invoke<Space>('create_space', {
         name,
         spaceType: type,
         apiUrl,
-        apiKey,
-        browser
+        apiKey
       })
       await loadSpaces()
       return space

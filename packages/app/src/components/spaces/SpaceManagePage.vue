@@ -42,18 +42,17 @@ function closeModal() {
   editingSpace.value = undefined
 }
 
-async function handleSubmit(data: { name: string; type: 'local' | 'remote'; apiUrl?: string; apiKey?: string; browser?: 'chrome' | 'edge' }) {
+async function handleSubmit(data: { name: string; type: 'local' | 'remote'; apiUrl?: string; apiKey?: string }) {
   try {
     if (modalMode.value === 'create') {
-      await createSpace(data.name, data.type, data.apiUrl, data.apiKey, data.browser)
+      await createSpace(data.name, data.type, data.apiUrl, data.apiKey)
     } else if (editingSpace.value) {
       await updateSpace({
         ...editingSpace.value,
         name: data.name,
         type: data.type,
         apiUrl: data.apiUrl,
-        apiKey: data.apiKey,
-        browser: data.browser
+        apiKey: data.apiKey
       })
     }
     closeModal()
@@ -62,8 +61,13 @@ async function handleSubmit(data: { name: string; type: 'local' | 'remote'; apiU
   }
 }
 
+// 默认空间不可编辑和删除
+function isDefaultSpace(space: Space) {
+  return space.id === 'default-chrome' || space.id === 'default-edge'
+}
+
 async function handleDelete(space: Space) {
-  if (space.id === 'default-local') {
+  if (isDefaultSpace(space)) {
     alert('无法删除默认空间')
     return
   }
@@ -138,13 +142,14 @@ function formatDate(dateStr: string) {
               {{ syncingSpaceId === space.id ? '同步中...' : '同步' }}
             </button>
             <button
+              v-if="!isDefaultSpace(space)"
               class="btn btn-sm btn-secondary"
               @click="openEditModal(space)"
             >
               编辑
             </button>
             <button
-              v-if="space.id !== 'default-local'"
+              v-if="!isDefaultSpace(space)"
               class="btn btn-sm btn-danger"
               @click="handleDelete(space)"
             >

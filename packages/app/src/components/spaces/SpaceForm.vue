@@ -8,19 +8,17 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'submit', data: { name: string; type: 'local' | 'remote'; apiUrl?: string; apiKey?: string; browser?: 'chrome' | 'edge' }): void
+  (e: 'submit', data: { name: string; type: 'local' | 'remote'; apiUrl?: string; apiKey?: string }): void
   (e: 'cancel'): void
 }>()
 
 const form = ref({
   name: props.space?.name || '',
-  type: (props.space?.type || 'local') as 'local' | 'remote',
+  type: (props.space?.type || 'remote') as 'local' | 'remote',
   apiUrl: props.space?.apiUrl || '',
-  apiKey: props.space?.apiKey || '',
-  browser: (props.space?.browser || 'chrome') as 'chrome' | 'edge'
+  apiKey: props.space?.apiKey || ''
 })
 
-const isRemote = computed(() => form.value.type === 'remote')
 const isEditMode = computed(() => props.mode === 'edit')
 
 // 远程空间 API 返回示例
@@ -45,8 +43,7 @@ function handleSubmit() {
     name: form.value.name,
     type: form.value.type,
     apiUrl: form.value.apiUrl || undefined,
-    apiKey: form.value.apiKey || undefined,
-    browser: form.value.browser || undefined
+    apiKey: form.value.apiKey || undefined
   })
 }
 </script>
@@ -64,72 +61,35 @@ function handleSubmit() {
       />
     </div>
 
-    <div class="form-group" v-if="!isEditMode">
-      <label for="type">空间类型</label>
-      <select id="type" v-model="form.type">
-        <option value="local">本地空间</option>
-        <option value="remote">远程空间</option>
-      </select>
+    <div class="form-group">
+      <label for="apiUrl">API 地址</label>
+      <input
+        id="apiUrl"
+        v-model="form.apiUrl"
+        type="url"
+        placeholder="https://api.example.com/bookmarks"
+      />
     </div>
 
-    <div class="form-group" v-if="!isEditMode && form.type === 'local'">
-      <label for="browser">浏览器类型</label>
-      <select id="browser" v-model="form.browser">
-        <option value="chrome">Chrome</option>
-        <option value="edge">Edge</option>
-      </select>
+    <div class="form-group">
+      <label for="apiKey">API 密钥 (可选)</label>
+      <input
+        id="apiKey"
+        v-model="form.apiKey"
+        type="password"
+        placeholder="输入 API 密钥"
+      />
     </div>
 
-    <!-- 编辑模式下显示只读的类型 -->
-    <div v-if="isEditMode && props.space" class="form-group">
-      <label>空间类型</label>
-      <div class="readonly-value">
-        <span class="type-badge" :class="props.space.type">
-          {{ props.space.type === 'local' ? '本地' : '远程' }}
-        </span>
-      </div>
-    </div>
-
-    <div v-if="isEditMode && props.space && props.space.type === 'local'" class="form-group">
-      <label>浏览器类型</label>
-      <div class="readonly-value">
-        <span class="type-badge" :class="props.space.browser || 'chrome'">
-          {{ (props.space.browser || 'chrome') === 'chrome' ? 'Chrome' : 'Edge' }}
-        </span>
-      </div>
-    </div>
-
-    <template v-if="isRemote">
-      <div class="form-group">
-        <label for="apiUrl">API 地址</label>
-        <input
-          id="apiUrl"
-          v-model="form.apiUrl"
-          type="url"
-          placeholder="https://api.example.com/bookmarks"
-        />
-      </div>
-
-      <div class="form-group">
-        <label for="apiKey">API 密钥 (可选)</label>
-        <input
-          id="apiKey"
-          v-model="form.apiKey"
-          type="password"
-          placeholder="输入 API 密钥"
-        />
-      </div>
-
-      <div v-if="!isEditMode" class="form-group">
-        <label>API 返回示例</label>
-        <div class="example-box">
-          <div class="example-header">
-            <span>远程 API 需要返回以下格式的 JSON：</span>
-          </div>
-          <pre class="example-code">{{ apiExample }}</pre>
+    <div v-if="!isEditMode" class="form-group">
+      <label>API 返回示例</label>
+      <div class="example-box">
+        <div class="example-header">
+          <span>远程 API 需要返回以下格式的 JSON：</span>
         </div>
+        <pre class="example-code">{{ apiExample }}</pre>
       </div>
-    </template>
+    </div>
 
     <div class="form-actions">
       <button type="button" class="btn btn-secondary" @click="$emit('cancel')">

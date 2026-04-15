@@ -37,13 +37,28 @@ fn register_native_messaging_host(exe_path: &PathBuf) -> Result<(), String> {
             .map_err(|e| format!("Failed to create manifest directory: {}", e))?;
     }
 
-    // Create manifest JSON
+    // Read existing manifest to preserve allowed_origins
+    let existing_allowed_origins: Vec<String> = if manifest_path.exists() {
+        let content = std::fs::read_to_string(&manifest_path)
+            .map_err(|e| format!("Failed to read existing manifest: {}", e))?;
+        let manifest: serde_json::Value = serde_json::from_str(&content)
+            .unwrap_or_else(|_| serde_json::json!({}));
+        manifest
+            .get("allowed_origins")
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str().map(|s| s.to_string())).collect())
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    // Create manifest JSON, preserving existing allowed_origins
     let manifest = serde_json::json!({
         "name": host_id,
         "description": "Browser Sync CLI Native Messaging Host",
         "path": exe_path.to_string_lossy().replace("\\", "\\\\"),
         "type": "stdio",
-        "allowed_origins": []
+        "allowed_origins": existing_allowed_origins
     });
 
     let manifest_json = serde_json::to_string_pretty(&manifest)
@@ -107,6 +122,13 @@ fn main() {
     tauri::Builder::default()
         .setup(|app| {
             let app_handle = app.handle();
+
+            // 获取主窗口并聚焦
+            if let Some(window) = app_handle.get_window("main") {
+                window.set_focus().unwrap_or_else(|e| {
+                    eprintln!("Failed to focus window: {}", e);
+                });
+            }
 
             // Watch for bookmark file changes
             std::thread::spawn(move || {

@@ -13,6 +13,7 @@ const searchQuery = ref('')
 const searchSpaceId = ref('all') // 'all' 表示全部空间
 const isLoading = ref(false)
 const treeRef = ref<InstanceType<typeof BookmarkTree> | null>(null)
+const searchInputRef = ref<HTMLInputElement | null>(null)
 
 // 当前空间的数据（用于"全部"模式）
 const spaceDataMap = ref<Map<string, BookmarkNode[]>>(new Map())
@@ -127,6 +128,9 @@ watch(spaces, () => {
 let unlisten: UnlistenFn | null = null
 
 onMounted(async () => {
+  // 自动聚焦搜索框
+  searchInputRef.value?.focus()
+
   await loadBookmarks()
   unlisten = await listen('bookmark-changed', () => {
     loadBookmarks()
@@ -167,6 +171,7 @@ function collapseAll() {
           </option>
         </select>
         <input
+          ref="searchInputRef"
           v-model="searchQuery"
           type="text"
           class="search-input"

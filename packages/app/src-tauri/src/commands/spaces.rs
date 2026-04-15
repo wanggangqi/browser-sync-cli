@@ -132,7 +132,7 @@ pub fn save_spaces(config: SpaceConfig) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn create_space(name: String, space_type: String, api_url: Option<String>, api_key: Option<String>, browser: Option<String>) -> Result<Space, String> {
+pub fn create_space(name: String, space_type: String, api_url: Option<String>, api_key: Option<String>) -> Result<Space, String> {
     let mut config = get_spaces()?;
 
     let now = Utc::now().to_rfc3339();
@@ -144,7 +144,7 @@ pub fn create_space(name: String, space_type: String, api_url: Option<String>, a
         space_type,
         api_url,
         api_key,
-        browser,
+        browser: None,
         last_sync: None,
         created_at: now.clone(),
         updated_at: now,

@@ -25,7 +25,10 @@ pnpm build:native-host  # Rust native host
 pnpm build:app          # Tauri 应用
 
 # 开发模式运行 Tauri 应用
-pnpm --filter app tauri dev
+# 注意：包名是 browser-sync-app，不是 app
+pnpm --filter browser-sync-app tauri dev
+# 或者直接进入目录运行
+cd packages/app && pnpm tauri dev
 
 # 构建 native host（需要 Rust/Cargo）
 cd packages/native-host && cargo build --release
@@ -40,7 +43,7 @@ rm -rf packages/app/dist && rm -rf packages/app/src-tauri/target
 # 2. 构建 native host（Tauri 需要它）
 cd packages/native-host && cargo build --release
 
-# 3. 复制 native host 到 binaries 目录
+# 3. 复制 native host 到 binaries 目录（开发模式也需要此步骤）
 mkdir -p packages/app/src-tauri/binaries
 cp packages/native-host/target/release/browser-sync-native-host.exe packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
 
@@ -150,3 +153,18 @@ packages/
 **JSON 解析错误 "missing field `last_sync`"：**
 - 原因：Rust 结构体缺少 `#[serde(rename_all = "camelCase")]`
 - 解决：在相关结构体上添加此属性
+
+**开发模式 "path matching binaries not found" 错误：**
+- 原因：Tauri 开发模式也需要 native host 二进制文件在 binaries 目录
+- 解决：运行开发模式前先复制 native host：
+  ```bash
+  mkdir -p packages/app/src-tauri/binaries
+  cp packages/native-host/target/release/browser-sync-native-host.exe packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
+  ```
+
+**pnpm filter 找不到 app 包：**
+- 原因：app 包名是 `browser-sync-app`，不是 `app`
+- 解决：使用正确的包名：
+  ```bash
+  pnpm --filter browser-sync-app tauri dev
+  ```

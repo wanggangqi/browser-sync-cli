@@ -49,6 +49,13 @@ cargo build --release
 ### 3. Run Tauri App
 
 ```bash
+# 首先确保 native host 已构建并复制到 binaries 目录
+cd packages/native-host
+cargo build --release
+mkdir -p ../app/src-tauri/binaries
+cp target/release/browser-sync-native-host.exe ../app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
+
+# 运行开发模式（注意包名是 browser-sync-app）
 cd packages/app
 pnpm install
 pnpm tauri dev
@@ -71,7 +78,10 @@ pnpm build:extension
 pnpm build:native-host
 
 # Run Tauri app in dev mode
-pnpm --filter app tauri dev
+# 注意：需要先复制 native host 到 binaries 目录
+mkdir -p packages/app/src-tauri/binaries
+cp packages/native-host/target/release/browser-sync-native-host.exe packages/app/src-tauri/binaries/browser-sync-native-host-x86_64-pc-windows-msvc.exe
+pnpm --filter browser-sync-app tauri dev
 ```
 
 ## License
